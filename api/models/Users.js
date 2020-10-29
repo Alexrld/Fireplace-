@@ -6,7 +6,8 @@ const Users = moongose.model('User', new Schema ({
     apellido: String,
     email: String,
     password: String,
-    salt: String
+    salt: String,
+    //role: { type: String, default: 'user'}
 }));
 
 module.exports = Users;
