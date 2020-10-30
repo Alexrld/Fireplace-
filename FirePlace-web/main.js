@@ -24,7 +24,9 @@ const renderOrderItem = (order, meal) => {
 let keepDatoMeal = []
 
 const mealsLoad = () => {
-    fetch('https://fireplace.alexrld.vercel.app/api/meals')
+    fetch('http://localhost:3000/api/meals', {
+        headers:{authorization:localStorage.getItem('token')}
+    })
         .then(resFetch => resFetch.json())
         .then(datoMeals => {
             keepDatoMeal = datoMeals;
@@ -36,7 +38,9 @@ const mealsLoad = () => {
                 mealsList.appendChild(element)
             });
             btn.removeAttribute('disabled')
-            fetch('https://fireplace.alexrld.vercel.app/api/orders')
+            fetch('http://localhost:3000/api/orders', {
+                headers:{authorization:localStorage.getItem('token')}
+            })
                 .then(x => x.json())
                 .then(datoOrders => {
                     const ordersList = document.getElementById('orders-list')
@@ -52,6 +56,7 @@ let orderUser = 'user'
 const orderLoad = () => {
     const orderForm = document.getElementById('order-form')
     orderForm.onsubmit = (e) => {
+        if (!localStorage.getItem('token')) location.reload();
         e.preventDefault()
         const btn = document.getElementById('btn')
         btn.setAttribute('disabled', true)
@@ -65,7 +70,7 @@ const orderLoad = () => {
             meal_id: mealIdValue,
             user_id: orderUser,
         }
-        fetch('https://fireplace.alexrld.vercel.app/api/orders', {
+        fetch('http://localhost:3000/api/orders', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -82,20 +87,20 @@ const orderLoad = () => {
     }
 }
 
-const register = () => {
-    const newUser = {
-        nombre: 'Carla',
-        apellido: 'Denniz',
-        email: 'carla@net.com',
-        password: '123456',
-    }
-    fetch('https://fireplace.alexrld.vercel.app/api/auth/register', {
-        method: 'POST',
+const me = () => {
+    const userToken = localStorage.getItem('token')
+    fetch('http://localhost:3000/api/auth/me', {
+        method: 'GET',
         headers: {
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(newUser)
+            'Content-Type': 'application/json',
+            authorization: userToken,
+        }
     })
+        .then(dato => dato.json())
+        .then(user => {
+            orderUser = user.nombre
+            localStorage.setItem('user', user.nombre)
+        })
 }
 
 const login = () => {
@@ -104,7 +109,8 @@ const login = () => {
         e.preventDefault();
         const email = document.getElementById('email').value;
         const password = document.getElementById('password').value;
-        fetch('https://fireplace.alexrld.vercel.app/api/auth/login', {
+        if (!email || !password) return alert('Ingrese sus datos por favor')
+        fetch('http://localhost:3000/api/auth/login', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
@@ -112,45 +118,82 @@ const login = () => {
             body: JSON.stringify({ email, password })
         })
             .then(dato => dato.json())
-            .then(getToken => {
-                console.log(getToken)
-                localStorage.setItem('token', getToken.token)
-            })
-            .then(() => renderApp())
+            .then(getToken => localStorage.setItem('token', getToken.token))
             .then(() => {
-                const userToken = localStorage.getItem('token')
-                fetch('https://fireplace.alexrld.vercel.app/api/auth/me', {
-                    method: 'GET',
-                    headers:{
-                        'Content-Type': 'application/json',
-                        authorization: userToken,
-                    }
-                })
-                .then(x => x.json())
-                .then(y => {
-                    orderUser = y.nombre
-                })
+                renderApp();
+                me();
             })
+            .catch(() => alert('Usuario y/o constraseña incorrectos'))
+    }
+    const toRegView = document.getElementById('toRegView')
+    toRegView.onclick = (e) => {
+        e.preventDefault();
+        registerLoad()
     }
 }
 
+const menuView = document.getElementById('menu-view')
+
 const renderApp = () => {
-    const token = localStorage.getItem('token');
-    if (token) {
-        const menuView = document.getElementById('menu-view')
         document.getElementsByTagName('body')[0].innerHTML = menuView.innerHTML;
         mealsLoad();
-        orderLoad();
+        orderLoad();   
+}
+
+const registerLoad = () => {
+    const registerView = document.getElementById('register-view')
+    document.getElementsByTagName('body')[0].innerHTML = registerView.innerHTML
+    const registerForm = document.getElementById('register-form')
+    registerForm.onsubmit = (e) => {
+        e.preventDefault();
+        const nombre = document.getElementById('nombre').value
+        const apellido = document.getElementById('apellido').value
+        const email = document.getElementById('email').value
+        const password = document.getElementById('password').value
+        if (!nombre || !apellido || !email || !password) return alert('Debe ingresar todos los campos por favor')
+        const newUser = {
+            nombre,
+            apellido,
+            email,
+            password
+        }
+        fetch('http://localhost:3000/api/auth/register', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(newUser)
+        })
+            .then(dato => dato.json())
+            .then(getToken => localStorage.setItem('token', getToken.token))
+            .then(() => {
+                renderApp();
+                me();
+            })
+            .catch(() => alert('El usuario ya existe!'))
     }
 }
 
 window.onload = () => {
     login();
-    //renderApp();
-    //register();
-    //mealsLoad();
-    //orderLoad();
+    if (localStorage.getItem('token')) {
+        me();
+        renderApp();
+    };
 }
+
+
+
+
+
+
+
+
+
+//renderApp();
+//register();
+//mealsLoad();
+//orderLoad();
 
 /* fetch('https://fireplace-three.vercel.app/api/meals')
     .then(x => x.json())

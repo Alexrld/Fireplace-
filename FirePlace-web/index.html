@@ -10,7 +10,28 @@
 
 <body>
 
-    <!--  <template id="login-view"> -->
+    <template id="register-view">
+        <div id="form-main-register">
+            <p id="register-title">Crea una Cuenta</p>
+            <form id="register-form">
+                <div>
+                    <input id="nombre" class="nombreApellido" type="text" placeholder="Nombre">
+                    <input id="apellido" class="nombreApellido" type="text" placeholder="Apellido">
+                </div>
+                <div>
+                    <input id="email" class="dataEP" type="email" placeholder="Email">
+                </div>
+                <div>
+                    <input id="password" class="dataEP" type="password" placeholder="Password">
+                </div>
+                <div>
+                    <button id="btnReg">Registrarte</button>
+                </div>
+            </form>
+        </div>
+    </template>
+
+    <!-- <template id="login-view"> -->
     <div class="form-main">
         <p class="form-title">Inicia Sesión</p>
         <form id="form-login">
@@ -23,9 +44,12 @@
                 <input id="password" class="dato" type="password" placeholder="password">
             </div>
             <div>
-                <button id="btnLogin">Enviar</button>
+                <button id="btnLogin">Login</button>
             </div>
         </form>
+        <div id="toRegView">
+            <button id="btnRegView">Registrarse</button>
+        </div>
     </div>
     <!-- </template> -->
 

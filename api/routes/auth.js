@@ -13,7 +13,12 @@ router.get('/', (require, response) => {
 });
 
 router.get('/me', isAuthenticated, (require, response) => {
-    response.send(require.user)
+    const basicUserData = {
+        nombre: require.user.nombre,
+        apellido:require.user.apellido,
+        email: require.user.email
+    }
+    response.send(basicUserData)
     //response.send('Soy me!!')
 })
 
@@ -38,7 +43,6 @@ router.post('/register', (require, response) => {
         const encryptedPassword = key.toString('base64')
         Users.findOne({ email }).exec() //Busca por email para encontrar al usuario completo
         .then(user => {
-            //console.log(user)
             if (user) return response.send('El usuario ya existe!')
             Users.create({
                 nombre,
@@ -46,7 +50,12 @@ router.post('/register', (require, response) => {
                 email,
                 password: encryptedPassword,
                 salt: randomSalt
-            }).then(() => response.send('Usuario creado con exito!'))
+            })
+            .then( newUser => {
+                const token = signToken(newUser._id)
+                response.send({ token })
+                //response.send('Usuario creado con exito!',{token})
+            })
         })
     })
 })
@@ -55,7 +64,10 @@ router.post('/login', (require, response) => {
     const { email, password } = require.body;
     Users.findOne({ email }).exec()
     .then(user => {
-        if(!user) return response.send('Usuario y/o constraseña incorrectos')
+        if(!user) {
+            alert('Usuario y/o constraseña incorrectos')
+            return response.send('Usuario y/o constraseña incorrectos')
+        }
         console.log('Inicio de sesion con exito!!')
         crypto.pbkdf2(password, user.salt, 10000, 64, 'sha1', (err, key) => {
             const encryptedPassword = key.toString('base64');

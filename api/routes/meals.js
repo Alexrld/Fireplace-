@@ -1,8 +1,9 @@
 const express = require('express');
 const Meals = require('../models/Meals');
 const router = express.Router();
+const isAuthenticated = require('../auth/test')
 
-router.get('/', (require, response) => {
+router.get('/', isAuthenticated, (require, response) => {
     Meals.find()
         .exec()
         .then(x => response.status(200).send(x));
